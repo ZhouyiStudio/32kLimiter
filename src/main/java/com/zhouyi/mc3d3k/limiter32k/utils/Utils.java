@@ -18,15 +18,28 @@ import java.util.Set;
 
 public class Utils {
 
+    /** 检测强度 (1-10), 从 LimiterMain.detectionIntensity 同步 */
+    public static int detectionIntensity = 5;
+
+    /**
+     * 根据检测强度从 10 级阈值数组中取值 (索引 0 = 强度 1, 索引 9 = 强度 10)
+     */
+    private int intensityThreshold(int[] levelMap) {
+        int idx = Math.min(Math.max(detectionIntensity, 1), 10) - 1;
+        return levelMap[idx];
+    }
+
     // ========== 单模块检测方法，每种返回 boolean ==========
 
     public boolean checkAbnormalNBT(ItemStack item) {
         if (item != null && item.getType() != Material.AIR) {
             NBTItem nbtItem = new NBTItem(item);
             NBTCompoundList attrs = nbtItem.getCompoundList("AttributeModifiers");
+            int threshold = intensityThreshold(new int[]{200, 150, 100, 50, 20, 10, 5, 3, 1, 0});
             if (attrs != null && attrs.size() > 0) {
                 for (ReadWriteNBT attr : attrs) {
-                    if (attr.getInteger("Amount") != 0) {
+                    int amount = attr.getInteger("Amount");
+                    if (threshold == 0 ? amount != 0 : Math.abs(amount) > threshold) {
                         return true;
                     }
                 }
@@ -39,8 +52,9 @@ public class Utils {
     public boolean checkAbnormalEnchantment(ItemStack item) {
         if (item != null) {
             Map<Enchantment, Integer> enchantments = item.getEnchantments();
+            int threshold = intensityThreshold(new int[]{50, 40, 30, 20, 15, 12, 10, 8, 6, 5});
             for (Integer level : enchantments.values()) {
-                if (level > 5) {
+                if (level > threshold) {
                     return true;
                 }
             }
@@ -56,7 +70,8 @@ public class Utils {
         if (item != null && item.getType() != Material.AIR) {
             int maxStack = item.getMaxStackSize();
             int currentAmount = item.getAmount();
-            return currentAmount > maxStack;
+            int multiplier = intensityThreshold(new int[]{64, 32, 16, 8, 4, 3, 2, 1, 1, 1});
+            return currentAmount > maxStack * multiplier;
         }
         return false;
     }
@@ -183,13 +198,15 @@ public class Utils {
             ItemMeta meta = item.getItemMeta();
             if (meta != null && meta.hasDisplayName()) {
                 String displayName = meta.getDisplayName();
-                // 名称长度超过 64 个字符
-                if (displayName.length() > 64) {
+                int lengthThreshold = intensityThreshold(new int[]{256, 200, 128, 96, 80, 72, 64, 56, 48, 40});
+                int colorThreshold = intensityThreshold(new int[]{16, 12, 10, 8, 6, 5, 4, 3, 2, 1});
+                // 名称长度超过阈值
+                if (displayName.length() > lengthThreshold) {
                     return true;
                 }
-                // 检测是否包含大量颜色代码（4个以上 § 符号）
+                // 检测是否包含过多颜色代码（§ 符号数量超过阈值）
                 int colorCodeCount = displayName.length() - displayName.replace("§", "").length();
-                if (colorCodeCount > 4) {
+                if (colorCodeCount > colorThreshold) {
                     return true;
                 }
             }
@@ -205,13 +222,15 @@ public class Utils {
             NBTItem nbtItem = new NBTItem(item);
             NBTCompoundList effects = nbtItem.getCompoundList("CustomPotionEffects");
             if (effects != null && effects.size() > 0) {
-                // 效果数量超过 3 个为异常
-                if (effects.size() > 3) {
+                int effectCount = intensityThreshold(new int[]{20, 15, 10, 6, 4, 3, 2, 2, 1, 1});
+                int amplLevel = intensityThreshold(new int[]{50, 40, 30, 20, 10, 5, 5, 3, 3, 1});
+                // 效果数量超过阈值
+                if (effects.size() > effectCount) {
                     return true;
                 }
-                // 检查是否有效果等级过高（Amplifier > 5）
+                // 效果等级超过阈值
                 for (ReadWriteNBT effect : effects) {
-                    if (effect.getInteger("Amplifier") > 5) {
+                    if (effect.getInteger("Amplifier") > amplLevel) {
                         return true;
                     }
                 }
@@ -277,8 +296,8 @@ public class Utils {
             NBTItem nbtItem = new NBTItem(item);
             if (nbtItem.hasTag("map")) {
                 int mapId = nbtItem.getInteger("map");
-                // 地图 ID 应该 >= 0 且 < 1000000
-                if (mapId < 0 || mapId > 1000000) {
+                int threshold = intensityThreshold(new int[]{100000000, 50000000, 10000000, 5000000, 1000000, 500000, 100000, 50000, 10000, 1000});
+                if (mapId < 0 || mapId > threshold) {
                     return true;
                 }
             }
@@ -295,11 +314,12 @@ public class Utils {
             NBTItem nbtItem = new NBTItem(item);
             NBTCompoundList effects = nbtItem.getCompoundList("CustomPotionEffects");
             if (effects != null && effects.size() > 0) {
+                int durThreshold = intensityThreshold(new int[]{5000000, 3000000, 2000000, 1200000, 600000, 300000, 200000, 100000, 50000, 20000});
+                int ampThreshold = intensityThreshold(new int[]{200, 100, 50, 30, 20, 15, 10, 8, 5, 3});
                 for (ReadWriteNBT effect : effects) {
                     int duration = effect.getInteger("Duration");
                     int amplifier = effect.getInteger("Amplifier");
-                    // 持续时间超过 600000 tick (约 55.5 分钟) 或 效果等级 > 20 视为异常
-                    if (duration > 600000 || amplifier > 20) {
+                    if (duration > durThreshold || amplifier > ampThreshold) {
                         return true;
                     }
                 }
@@ -317,7 +337,8 @@ public class Utils {
             ItemMeta meta = item.getItemMeta();
             if (meta != null && meta.hasCustomModelData()) {
                 int modelData = meta.getCustomModelData();
-                if (modelData > 9999 || modelData < -9999) {
+                int threshold = intensityThreshold(new int[]{1000000, 500000, 100000, 50000, 9999, 5000, 1000, 500, 100, 50});
+                if (modelData > threshold || modelData < -threshold) {
                     return true;
                 }
             }

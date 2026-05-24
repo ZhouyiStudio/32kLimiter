@@ -3,6 +3,7 @@ package com.zhouyi.mc3d3k.limiter32k;
 import com.zhouyi.mc3d3k.limiter32k.utils.BanManager;
 import com.zhouyi.mc3d3k.limiter32k.commands.LimiterCommand;
 import com.zhouyi.mc3d3k.limiter32k.events.EventListener;
+import com.zhouyi.mc3d3k.limiter32k.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,6 +32,9 @@ public class LimiterMain extends JavaPlugin {
     public static boolean detectExtremePotionEffects;
     public static boolean detectCustomModelData;
 
+    // 检测强度 (1-10)
+    public static int detectionIntensity;
+
     public static LimiterMain getInstance() {
         return INSTANCE;
     }
@@ -55,6 +59,10 @@ public class LimiterMain extends JavaPlugin {
         detectCustomMapID = getConfig().getBoolean("detections.custom-map-id", true);
         detectExtremePotionEffects = getConfig().getBoolean("detections.extreme-potion-effects", true);
         detectCustomModelData = getConfig().getBoolean("detections.custom-model-data", true);
+        detectionIntensity = getConfig().getInt("detection-intensity", 5);
+        if (detectionIntensity < 1) detectionIntensity = 1;
+        if (detectionIntensity > 10) detectionIntensity = 10;
+        Utils.detectionIntensity = detectionIntensity;
     }
     @Override
     public void onEnable() {
@@ -72,7 +80,7 @@ public class LimiterMain extends JavaPlugin {
 
         isEnabled = getConfig().getBoolean("enabled");
         loadDetectionsConfig();
-        getLogger().info(ChatColor.GREEN + "[2/7] 加载 " + getTotalDetections() + " 个检测模块 (已启用 " + countEnabledDetections() + ")");
+        getLogger().info(ChatColor.GREEN + "[2/7] 加载 " + getTotalDetections() + " 个检测模块 (已启用 " + countEnabledDetections() + "), 检测强度: " + detectionIntensity + "/10");
 
         Bukkit.getPluginManager().registerEvents(new EventListener(), this);
         getLogger().info(ChatColor.GREEN + "[3/7] 注册事件监听器... 完成");

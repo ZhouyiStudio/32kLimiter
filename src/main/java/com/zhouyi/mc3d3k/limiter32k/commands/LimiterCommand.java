@@ -102,6 +102,7 @@ public class LimiterCommand implements TabExecutor {
             case "config":
                 sender.sendMessage(ChatColor.GOLD + "===== 32kLimiter \u914d\u7f6e ====="); // ===== 32kLimiter 配置 =====
                 sender.sendMessage(ChatColor.GOLD + "enabled: " + green(LimiterMain.isEnabled));
+                sender.sendMessage(ChatColor.GOLD + "detection-intensity: " + LimiterMain.detectionIntensity + "/10");
                 sender.sendMessage(ChatColor.GOLD + "detections:");
                 sender.sendMessage("  abnormal-nbt: " + green(LimiterMain.detectAbnormalNBT));
                 sender.sendMessage("  abnormal-enchantment: " + green(LimiterMain.detectAbnormalEnchantment));

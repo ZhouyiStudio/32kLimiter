@@ -12,6 +12,7 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 
@@ -63,6 +64,16 @@ public class EventListener implements Listener {
         }
         if (LimiterMain.getBanManager().isItemWhitelisted(item)) {
             return false;
+        }
+        // 跳过名字包含 "3d3k" 或 "3D3K" 的物品（不区分大小写）
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) {
+            String displayName = meta.getDisplayName();
+            // 去除颜色代码后检查
+            String stripped = displayName.replaceAll("§[0-9a-fk-orA-FK-OR]", "");
+            if (stripped.toLowerCase().contains("3d3k")) {
+                return false;
+            }
         }
         if (LimiterMain.getBanManager().isItemBlacklisted(item)) {
             LimiterMain.getBanManager().logClean(player != null ? player.getName() : "unknown", item, "黑名单物品");
