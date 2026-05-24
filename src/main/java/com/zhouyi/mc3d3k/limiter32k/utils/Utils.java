@@ -2,7 +2,7 @@ package com.zhouyi.mc3d3k.limiter32k.utils;
 
 import de.tr7zw.nbtapi.NBTCompoundList;
 import de.tr7zw.nbtapi.NBTItem;
-import de.tr7zw.nbtapi.NBTListCompound;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -20,7 +20,7 @@ public class Utils {
             NBTItem nbtItem = new NBTItem(item);
             NBTCompoundList attrs = nbtItem.getCompoundList("AttributeModifiers");
             if (attrs.size() > 0) {
-                for (NBTListCompound attr : attrs) {
+                for (ReadWriteNBT attr : attrs) {
                     if (attr.getInteger("Amount") != 0) {
                         return true;
                     }
@@ -205,7 +205,7 @@ public class Utils {
                     return true;
                 }
                 // 检查是否有效果等级过高（Amplifier > 5）
-                for (NBTListCompound effect : effects) {
+                for (ReadWriteNBT effect : effects) {
                     if (effect.getInteger("Amplifier") > 5) {
                         return true;
                     }
