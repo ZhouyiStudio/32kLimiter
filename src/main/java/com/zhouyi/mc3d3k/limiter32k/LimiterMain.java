@@ -62,8 +62,8 @@ public class LimiterMain extends JavaPlugin {
 
         getLogger().info(ChatColor.GOLD + "=========================================");
         getLogger().info(ChatColor.GOLD + "  " + ChatColor.AQUA + "32kLimiter" + ChatColor.GOLD + " by Zhouyi");
-        getLogger().info(ChatColor.GOLD + "  " + ChatColor.GRAY + "github.com/ZhouyiStudio/32kLimiter");
-        getLogger().info(ChatColor.GOLD + "  " + ChatColor.GRAY + "QQ: 823672854");
+        getLogger().info(ChatColor.GOLD + "  " + ChatColor.GOLD + "github.com/ZhouyiStudio/32kLimiter");
+        getLogger().info(ChatColor.GOLD + "  " + ChatColor.GOLD + "QQ: 823672854");
         getLogger().info(ChatColor.GOLD + "=========================================");
 
         saveDefaultConfig();
