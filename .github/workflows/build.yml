@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  准备:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
@@ -23,8 +23,8 @@ jobs:
       - name: 设置 gradlew 权限
         run: chmod +x gradlew
 
-  编译:
-    needs: 准备
+  build:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
@@ -46,8 +46,8 @@ jobs:
           name: 32kLimiter-build
           path: build/libs/*.jar
 
-  上传:
-    needs: 编译
+  upload:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: 下载构建产物
