@@ -5,3 +5,8 @@ author: GuangChen233
 api-version: '1.21'
 softdepend:
   - NBTAPI
+commands:
+  limiter:
+    description: 32kLimiter 主命令 - 管理检测模块与插件状态
+    aliases: [32klimiter]
+    usage: /<command> [reload|config|enable|disable|status]
