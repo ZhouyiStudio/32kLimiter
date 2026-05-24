@@ -43,7 +43,7 @@ jobs:
       - name: 上传 JAR 产物
         uses: actions/upload-artifact@v4
         with:
-          name: 32kLimiter
+          name: 32kLimiter-build
           path: build/libs/*.jar
 
   上传:
@@ -53,8 +53,8 @@ jobs:
       - name: 下载构建产物
         uses: actions/download-artifact@v4
         with:
-          name: 32kLimiter
-      - name: 发布产物
+          name: 32kLimiter-build
+      - name: 发布产物（最终）
         uses: actions/upload-artifact@v4
         with:
           name: 32kLimiter
