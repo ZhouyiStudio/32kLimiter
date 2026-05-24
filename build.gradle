@@ -4,6 +4,7 @@ plugins {
 
 group 'com.zhouyi.mc3d3k.limiter32k'
 version '2.1.0'
+archivesBaseName = 'Limiter32k'
 
 repositories {
     mavenCentral()
