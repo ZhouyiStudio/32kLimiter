@@ -246,8 +246,6 @@ public class Utils {
         }
         return false;
     }
-        return false;
-    }
 
     /**
      * 检测无效物品模型 - item_model 指向不存在的物品
