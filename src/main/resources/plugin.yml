@@ -1,4 +1,4 @@
-name: 32kLimiter
+name: Limiter32k
 main: com.zhouyi.mc3d3k.limiter32k.LimiterMain
 version: 2.1.0
 author: GuangChen233
