@@ -1,6 +1,6 @@
 name: Limiter32k
 main: com.zhouyi.mc3d3k.limiter32k.LimiterMain
-version: 2.1.0
+version: 3.0.0
 author: GuangChen233
 api-version: '1.21'
 softdepend:
