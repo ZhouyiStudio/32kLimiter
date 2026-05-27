@@ -2,6 +2,7 @@ package com.zhouyi.mc3d3k.limiter32k.events;
 
 import com.zhouyi.mc3d3k.limiter32k.LimiterMain;
 import com.zhouyi.mc3d3k.limiter32k.utils.Utils;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,6 +20,20 @@ import java.util.ArrayList;
 public class EventListener implements Listener {
     private final Utils utils = new Utils();
     private final ItemStack AIR = new ItemStack(Material.AIR);
+
+    /**
+     * 向玩家发送物品清理提示弹窗
+     */
+    private void sendCleanNotification(Player player, ItemStack item, String reason) {
+        if (player == null) return;
+        player.sendTitle(
+                ChatColor.RED + "§l物品被清理",
+                ChatColor.YELLOW + item.getType().name() + " §7(" + reason + ")",
+                10, 40, 10
+        );
+        player.sendMessage(ChatColor.RED + "⚠ " + ChatColor.WHITE + item.getType().name()
+                + ChatColor.GRAY + " 已被服务器清理，原因: " + ChatColor.YELLOW + reason);
+    }
 
     /**
      * 获取当前启用的检测模块标志数组
@@ -75,8 +90,11 @@ public class EventListener implements Listener {
                 return false;
             }
         }
+        String reason;
         if (LimiterMain.getBanManager().isItemBlacklisted(item)) {
-            LimiterMain.getBanManager().logClean(player != null ? player.getName() : "unknown", item, "黑名单物品");
+            reason = "黑名单物品";
+            LimiterMain.getBanManager().logClean(player != null ? player.getName() : "unknown", item, reason);
+            sendCleanNotification(player, item, reason);
             return true;
         }
         boolean result;
@@ -86,7 +104,9 @@ public class EventListener implements Listener {
             result = utils.checkItem(item, getDetectionFlags()) || isNonOpWithSpawnEgg(player, item);
         }
         if (result) {
-            LimiterMain.getBanManager().logClean(player != null ? player.getName() : "unknown", item, "异常物品");
+            reason = "异常物品";
+            LimiterMain.getBanManager().logClean(player != null ? player.getName() : "unknown", item, reason);
+            sendCleanNotification(player, item, reason);
         }
         return result;
     }
