@@ -68,6 +68,14 @@ public class BanManager {
         return itemBlacklist.add(getItemSignature(item));
     }
 
+    /**
+     * 从黑名单移除物品
+     */
+    public boolean removeItemBlacklist(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return false;
+        return itemBlacklist.remove(getItemSignature(item));
+    }
+
     public Set<String> getItemBlacklist() {
         return Collections.unmodifiableSet(itemBlacklist);
     }

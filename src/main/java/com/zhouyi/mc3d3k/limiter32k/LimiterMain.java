@@ -32,6 +32,9 @@ public class LimiterMain extends JavaPlugin {
     public static boolean detectExtremePotionEffects;
     public static boolean detectCustomModelData;
 
+    // 高级执行模式开关 — 仅控制台通过 exeadd/exedel 控制
+    public static boolean advancedExeMode;
+
     // 检测强度 (1-10)
     public static int detectionIntensity;
 
