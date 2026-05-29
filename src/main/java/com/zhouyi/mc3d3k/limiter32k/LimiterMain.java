@@ -34,6 +34,7 @@ public class LimiterMain extends JavaPlugin {
 
     // 高级执行模式开关 — 仅控制台通过 exeadd/exedel 控制
     public static boolean advancedExeMode;
+    public static String advancedExePlayer; // 被授权的玩家名
 
     // 检测强度 (1-10)
     public static int detectionIntensity;

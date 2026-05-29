@@ -49,7 +49,17 @@ public class LimiterCommand implements TabExecutor {
     }
 
     private void noAdvancedMode(CommandSender sender) {
-        sender.sendMessage(ChatColor.RED + "高级执行模式未启用。请先由控制台执行 /32klimiter exeadd 启用。");
+        sender.sendMessage(ChatColor.RED + "高级执行模式未启用。请先由控制台执行 /32klimiter exeadd <玩家名> 启用。");
+    }
+
+    /**
+     * 检查发送者是否有权限执行高级命令：
+     * 控制台永远可以；玩家需要 advancedExeMode 开启且是被授权的玩家。
+     */
+    private boolean isAuthorizedSender(CommandSender sender) {
+        if (sender instanceof ConsoleCommandSender) return true;
+        if (!LimiterMain.advancedExeMode || LimiterMain.advancedExePlayer == null) return false;
+        return sender instanceof Player && ((Player) sender).getName().equalsIgnoreCase(LimiterMain.advancedExePlayer);
     }
 
     @Override
@@ -98,25 +108,21 @@ public class LimiterCommand implements TabExecutor {
             sender.sendMessage(ChatColor.GOLD + "/" + label + " whitelist remove [\u73a9\u5bb6] " + ChatColor.WHITE + "- " + ChatColor.GRAY + "\u79fb\u9664\u73a9\u5bb6\u6216\u624b\u4e2d\u7269\u54c1\u4ece\u767d\u540d\u5355(\u9700\u8981exeadd)");
             sender.sendMessage(ChatColor.GOLD + "/" + label + " whitelist list " + ChatColor.WHITE + "- " + ChatColor.GRAY + "\u67e5\u770b\u767d\u540d\u5355\u73a9\u5bb6\u548c\u7269\u54c1\u5217\u8868(\u9700\u8981exeadd)");
             sender.sendMessage(ChatColor.GOLD + "/" + label + " unbanitem " + ChatColor.WHITE + "- " + ChatColor.GRAY + "\u5c06\u624b\u4e2d\u7269\u54c1\u4ece\u9ed1\u540d\u5355\u79fb\u9664(\u9700\u8981exeadd)");
-            sender.sendMessage(ChatColor.GOLD + "/" + label + " exeadd " + ChatColor.WHITE + "- " + ChatColor.GRAY + "\u542f\u7528\u9ad8\u7ea7\u6267\u884c\u6a21\u5f0f(\u4ec5\u63a7\u5236\u53f0)");
+            sender.sendMessage(ChatColor.GOLD + "/" + label + " exeadd <\u73a9\u5bb6\u540d> " + ChatColor.WHITE + "- " + ChatColor.GRAY + "\u542f\u7528\u9ad8\u7ea7\u6267\u884c\u6a21\u5f0f\u5e76\u6388\u6743\u73a9\u5bb6(\u4ec5\u63a7\u5236\u53f0)");
             sender.sendMessage(ChatColor.GOLD + "/" + label + " exedel " + ChatColor.WHITE + "- " + ChatColor.GRAY + "\u7981\u7528\u9ad8\u7ea7\u6267\u884c\u6a21\u5f0f(\u4ec5\u63a7\u5236\u53f0)");
             return true;
         }
 
         switch (args[0]) {
             case "reload":
-                if (sender instanceof ConsoleCommandSender) { sender.sendMessage(ChatColor.RED + "该命令仅限玩家使用。"); return true; }
-                if (!sender.isOp()) { noPerm(sender); return true; }
-                if (!LimiterMain.advancedExeMode) { noAdvancedMode(sender); return true; }
+                if (!isAuthorizedSender(sender)) { noAdvancedMode(sender); return true; }
                 sender.sendMessage(ChatColor.GREEN + "\u91cd\u8f7d\u4e2d..."); // 重载中...
                 LimiterMain.getInstance().reload();
                 sender.sendMessage(ChatColor.GREEN + "\u91cd\u8f7d\u5b8c\u6210\u3002\u5f53\u524d\u72b6\u6001: " // 重载完成。当前状态:
                         + (LimiterMain.isEnabled ? ChatColor.GREEN + "\u5df2\u542f\u7528" : ChatColor.RED + "\u5df2\u7981\u7528"));
                 break;
             case "config":
-                if (sender instanceof ConsoleCommandSender) { sender.sendMessage(ChatColor.RED + "该命令仅限玩家使用。"); return true; }
-                if (!sender.isOp()) { noPerm(sender); return true; }
-                if (!LimiterMain.advancedExeMode) { noAdvancedMode(sender); return true; }
+                if (!isAuthorizedSender(sender)) { noAdvancedMode(sender); return true; }
                 sender.sendMessage(ChatColor.GOLD + "===== 32kLimiter \u914d\u7f6e ====="); // ===== 32kLimiter 配置 =====
                 sender.sendMessage(ChatColor.GOLD + "enabled: " + green(LimiterMain.isEnabled));
                 sender.sendMessage(ChatColor.GOLD + "detection-intensity: " + LimiterMain.detectionIntensity + "/10");
@@ -138,21 +144,17 @@ public class LimiterCommand implements TabExecutor {
                 sender.sendMessage("  custom-model-data: " + green(LimiterMain.detectCustomModelData));
                 break;
             case "enable":
-                if (sender instanceof ConsoleCommandSender) { sender.sendMessage(ChatColor.RED + "该命令仅限玩家使用。"); return true; }
-                if (!sender.isOp()) { noPerm(sender); return true; }
-                if (!LimiterMain.advancedExeMode) { noAdvancedMode(sender); return true; }
+                if (!isAuthorizedSender(sender)) { noAdvancedMode(sender); return true; }
                 LimiterMain.isEnabled = true;
                 sender.sendMessage(ChatColor.GREEN + "\u63d2\u4ef6\u5df2\u542f\u7528\u3002"); // 插件已启用。
                 break;
             case "disable":
-                if (sender instanceof ConsoleCommandSender) { sender.sendMessage(ChatColor.RED + "该命令仅限玩家使用。"); return true; }
-                if (!sender.isOp()) { noPerm(sender); return true; }
-                if (!LimiterMain.advancedExeMode) { noAdvancedMode(sender); return true; }
+                if (!isAuthorizedSender(sender)) { noAdvancedMode(sender); return true; }
                 LimiterMain.isEnabled = false;
                 sender.sendMessage(ChatColor.GREEN + "\u63d2\u4ef6\u5df2\u7981\u7528\u3002"); // 插件已禁用。
                 break;
             case "status":
-                if (sender instanceof ConsoleCommandSender) { sender.sendMessage(ChatColor.RED + "该命令仅限玩家使用。"); return true; }
+                if (!isAuthorizedSender(sender)) { noAdvancedMode(sender); return true; }
                 String status = LimiterMain.isEnabled
                         ? ChatColor.GREEN + "\u5df2\u542f\u7528"    // 已启用
                         : ChatColor.RED + "\u5df2\u7981\u7528";      // 已禁用
@@ -164,8 +166,13 @@ public class LimiterCommand implements TabExecutor {
                     sender.sendMessage(ChatColor.RED + "该命令仅限控制台使用。");
                     return true;
                 }
+                if (args.length < 2) {
+                    sender.sendMessage(ChatColor.RED + "用法: /" + label + " exeadd <玩家名>");
+                    return true;
+                }
+                LimiterMain.advancedExePlayer = args[1];
                 LimiterMain.advancedExeMode = true;
-sender.sendMessage(ChatColor.GREEN + "高级执行模式已启用。现在可执行高级命令 (reload/config/enable/disable/banitem/unbanitem/banlist/whitelist)。");
+                sender.sendMessage(ChatColor.GREEN + "高级执行模式已启用。玩家 " + args[1] + " 现在可执行高级命令。");
                 break;
             case "exedel":
                 if (!(sender instanceof ConsoleCommandSender)) {
@@ -173,12 +180,11 @@ sender.sendMessage(ChatColor.GREEN + "高级执行模式已启用。现在可执
                     return true;
                 }
                 LimiterMain.advancedExeMode = false;
+                LimiterMain.advancedExePlayer = null;
                 sender.sendMessage(ChatColor.GREEN + "高级执行模式已禁用。");
                 break;
             case "banitem":
-                if (sender instanceof ConsoleCommandSender) { sender.sendMessage(ChatColor.RED + "该命令仅限玩家使用。"); return true; }
-                if (!sender.isOp()) { noPerm(sender); return true; }
-                if (!LimiterMain.advancedExeMode) { noAdvancedMode(sender); return true; }
+                if (!isAuthorizedSender(sender)) { noAdvancedMode(sender); return true; }
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.RED + "\u8be5\u547d\u4ee4\u53ea\u80fd\u7531\u73a9\u5bb6\u4f7f\u7528\u3002");
                     return true;
@@ -197,9 +203,7 @@ sender.sendMessage(ChatColor.GREEN + "高级执行模式已启用。现在可执
                 }
                 break;
             case "unbanitem":
-                if (sender instanceof ConsoleCommandSender) { sender.sendMessage(ChatColor.RED + "该命令仅限玩家使用。"); return true; }
-                if (!sender.isOp()) { noPerm(sender); return true; }
-                if (!LimiterMain.advancedExeMode) { noAdvancedMode(sender); return true; }
+                if (!isAuthorizedSender(sender)) { noAdvancedMode(sender); return true; }
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.RED + "\u8be5\u547d\u4ee4\u53ea\u80fd\u7531\u73a9\u5bb6\u4f7f\u7528\u3002");
                     return true;
@@ -220,9 +224,7 @@ sender.sendMessage(ChatColor.GREEN + "高级执行模式已启用。现在可执
                 }
                 break;
             case "banlist":
-                if (sender instanceof ConsoleCommandSender) { sender.sendMessage(ChatColor.RED + "该命令仅限玩家使用。"); return true; }
-                if (!sender.isOp()) { noPerm(sender); return true; }
-                if (!LimiterMain.advancedExeMode) { noAdvancedMode(sender); return true; }
+                if (!isAuthorizedSender(sender)) { noAdvancedMode(sender); return true; }
                 {
                     Set<String> blacklist = LimiterMain.getBanManager().getItemBlacklist();
                     if (blacklist.isEmpty()) {
@@ -244,9 +246,7 @@ sender.sendMessage(ChatColor.GREEN + "高级执行模式已启用。现在可执
                 }
                 break;
             case "whitelist":
-                if (sender instanceof ConsoleCommandSender) { sender.sendMessage(ChatColor.RED + "该命令仅限玩家使用。"); return true; }
-                if (!sender.isOp()) { noPerm(sender); return true; }
-                if (!LimiterMain.advancedExeMode) { noAdvancedMode(sender); return true; }
+                if (!isAuthorizedSender(sender)) { noAdvancedMode(sender); return true; }
                 if (args.length < 2) {
                     sender.sendMessage(ChatColor.RED + "\u7528\u6cd5: /" + label + " whitelist add|remove|list [\u73a9\u5bb6]");
                     return true;
