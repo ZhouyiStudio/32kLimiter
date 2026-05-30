@@ -60,7 +60,8 @@ public class EventListener implements Listener {
                 LimiterMain.detectCustomMapID,
                 LimiterMain.detectExtremePotionEffects,
                 LimiterMain.detectCustomModelData,
-                LimiterMain.detectCreativeOnlyItem
+                LimiterMain.detectCreativeOnlyItem,
+                LimiterMain.detectElytra
         };
     }
 
@@ -76,15 +77,15 @@ public class EventListener implements Listener {
      * 先检查玩家白名单、物品空值/AIR、物品白名单，再检查物品黑名单（命中则直接记录并清理），
      * 最后委托给 utils.checkItem 和 isNonOpWithSpawnEgg 做进一步检测
      */
-    private boolean shouldClean(Player player, ItemStack item) {
+    private String shouldClean(Player player, ItemStack item) {
         if (player != null && LimiterMain.getBanManager().isPlayerWhitelisted(player.getName())) {
-            return false;
+            return null;
         }
         if (item == null || item.getType() == Material.AIR) {
-            return false;
+            return null;
         }
         if (LimiterMain.getBanManager().isItemWhitelisted(item)) {
-            return false;
+            return null;
         }
         // 跳过名字包含 "3d3k" 或 "3D3K" 的物品（不区分大小写）
         ItemMeta meta = item.getItemMeta();
@@ -93,26 +94,27 @@ public class EventListener implements Listener {
             // 去除颜色代码后检查
             String stripped = displayName.replaceAll("§[0-9a-fk-orA-FK-OR]", "");
             if (stripped.toLowerCase().contains("3d3k")) {
-                return false;
+                return null;
             }
         }
-        String reason;
         if (LimiterMain.getBanManager().isItemBlacklisted(item)) {
-            reason = "黑名单物品";
+            String reason = "黑名单物品";
             LimiterMain.getBanManager().logClean(player != null ? player.getName() : "unknown", item, reason);
             sendCleanNotification(player, item, reason);
-            return true;
+            return reason;
         }
-        boolean result;
+        String result;
         if (player == null) {
             result = utils.checkItem(item, getDetectionFlags());
         } else {
-            result = utils.checkItem(item, getDetectionFlags()) || isNonOpWithSpawnEgg(player, item);
+            result = utils.checkItem(item, getDetectionFlags());
+            if (result == null && isNonOpWithSpawnEgg(player, item)) {
+                result = "非OP持有刷怪蛋";
+            }
         }
-        if (result) {
-            reason = "异常物品";
-            LimiterMain.getBanManager().logClean(player != null ? player.getName() : "unknown", item, reason);
-            sendCleanNotification(player, item, reason);
+        if (result != null) {
+            LimiterMain.getBanManager().logClean(player != null ? player.getName() : "unknown", item, result);
+            sendCleanNotification(player, item, result);
         }
         return result;
     }
@@ -124,12 +126,14 @@ public class EventListener implements Listener {
                 if (event.getDamager() instanceof Player) {
                     Player player = (Player) event.getDamager();
                     ItemStack mainHand = player.getInventory().getItemInMainHand();
-                    if (shouldClean(player, mainHand)) {
+                    String result = shouldClean(player, mainHand);
+                    if (result != null) {
                         event.setDamage(40D);
                         player.getInventory().setItemInMainHand(AIR);
                     }
                     ItemStack offHand = player.getInventory().getItemInOffHand();
-                    if (shouldClean(player, offHand)) {
+                    result = shouldClean(player, offHand);
+                    if (result != null) {
                         event.setDamage(40D);
                         player.getInventory().setItemInOffHand(AIR);
                     }
@@ -142,12 +146,12 @@ public class EventListener implements Listener {
     public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event) {
         if (LimiterMain.isEnabled) {
             Player player = event.getPlayer();
-            boolean mainHandResult = shouldClean(player, event.getMainHandItem());
-            boolean offHandResult = shouldClean(player, event.getOffHandItem());
-            if (mainHandResult) {
+            String mainHandResult = shouldClean(player, event.getMainHandItem());
+            String offHandResult = shouldClean(player, event.getOffHandItem());
+            if (mainHandResult != null) {
                 event.setMainHandItem(AIR);
             }
-            if (offHandResult) {
+            if (offHandResult != null) {
                 event.setOffHandItem(AIR);
             }
         }
@@ -159,7 +163,7 @@ public class EventListener implements Listener {
             if (!(event.getEntity() instanceof Player)) return;
             Player player = (Player) event.getEntity();
             ItemStack item = event.getItem().getItemStack();
-            if (shouldClean(player, item)) {
+            if (shouldClean(player, item) != null) {
                 event.setCancelled(true);
                 event.getItem().remove();
             }
@@ -173,8 +177,8 @@ public class EventListener implements Listener {
             if (event.getWhoClicked() instanceof Player) {
                 player = (Player) event.getWhoClicked();
             }
-            boolean abnormal = shouldClean(player, event.getCurrentItem());
-            if (abnormal) {
+            String result = shouldClean(player, event.getCurrentItem());
+            if (result != null) {
                 event.setCurrentItem(AIR);
             }
         }
@@ -188,7 +192,7 @@ public class EventListener implements Listener {
             if (items.length > 0) {
                 ArrayList<ItemStack> abnormalItems = new ArrayList<>();
                 for (ItemStack item : items) {
-                    if (shouldClean(player, item)) {
+                    if (shouldClean(player, item) != null) {
                         if (!abnormalItems.contains(item)) {
                             abnormalItems.add(item);
                         }
@@ -215,7 +219,7 @@ public class EventListener implements Listener {
             if (items.length > 0) {
                 ArrayList<ItemStack> abnormalItems = new ArrayList<>();
                 for (ItemStack item : items) {
-                    if (shouldClean(player, item)) {
+                    if (shouldClean(player, item) != null) {
                         if (!abnormalItems.contains(item)) {
                             abnormalItems.add(item);
                         }
@@ -233,7 +237,7 @@ public class EventListener implements Listener {
                 if (inventoryContents.length > 0) {
                     ArrayList<ItemStack> abnormalItems = new ArrayList<>();
                     for (ItemStack item : inventoryContents) {
-                        if (shouldClean(player, item)) {
+                        if (shouldClean(player, item) != null) {
                             if (!abnormalItems.contains(item)) {
                                 abnormalItems.add(item);
                             }

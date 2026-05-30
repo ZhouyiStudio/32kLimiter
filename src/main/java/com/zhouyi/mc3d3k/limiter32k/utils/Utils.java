@@ -382,6 +382,18 @@ public class Utils {
         }
     }
 
+    /**
+     * 检测物品是否为鞘翅（ELYTRA）
+     * 鞘翅只能在创造模式下获取，生存模式不允许持有
+     */
+    public String checkElytra(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return null;
+        if (item.getType() == Material.ELYTRA) {
+            return "生存模式不允许持有鞘翅(ELYTRA)";
+        }
+        return null;
+    }
+
     // ========== 刷怪蛋检测工具方法 ==========
 
     /**
@@ -414,45 +426,80 @@ public class Utils {
 
     // ========== 综合检测入口 ==========
 
-    public boolean checkItem(ItemStack itemStack, boolean... detectionFlags) {
-        if (itemStack == null) return false;
+    public String checkItem(ItemStack itemStack, boolean... detectionFlags) {
+        if (itemStack == null) return null;
 
-        // 如果传入了检测标志，依次检查
+        String reason;
         if (detectionFlags.length > 0) {
             int index = 0;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkAbnormalNBT(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkAbnormalEnchantment(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkAbnormalAmount(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkUnbreakable(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkIllegalEnchantments(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkExtremeEnchantment(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkHideFlags(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkAbnormalItemName(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkAbnormalFoodEffects(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkInvalidPotionType(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkInvalidItemModel(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkCustomMapID(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkExtremePotionEffects(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkCustomModelData(itemStack)) return true;
-            if (index < detectionFlags.length && detectionFlags[index++] && checkCreativeOnlyItem(itemStack)) return true;
-            return false;
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkAbnormalNBT(itemStack)) return "异常NBT属性";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkAbnormalEnchantment(itemStack)) return "异常附魔等级";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkAbnormalAmount(itemStack)) return "异常堆叠数量";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkUnbreakable(itemStack)) return "不可破坏标签";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkIllegalEnchantments(itemStack)) return "互斥附魔共存";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkExtremeEnchantment(itemStack)) return "极端附魔等级";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkHideFlags(itemStack)) return "隐藏物品属性";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkAbnormalItemName(itemStack)) return "异常名称描述";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkAbnormalFoodEffects(itemStack)) return "异常食物效果";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkInvalidPotionType(itemStack)) return "无效药水类型";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkInvalidItemModel(itemStack)) return "无效物品模型";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkCustomMapID(itemStack)) return "异常地图ID";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkExtremePotionEffects(itemStack)) return "极端药水效果";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkCustomModelData(itemStack)) return "异常模型数据";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if (checkCreativeOnlyItem(itemStack)) return "创造专属物品";
+            }
+            if (index < detectionFlags.length && detectionFlags[index++]) {
+                if ((reason = checkElytra(itemStack)) != null) return reason;
+            }
+            return null;
         }
 
         // 默认行为：全部检查
-        return checkAbnormalNBT(itemStack)
-                || checkAbnormalEnchantment(itemStack)
-                || checkAbnormalAmount(itemStack)
-                || checkUnbreakable(itemStack)
-                || checkIllegalEnchantments(itemStack)
-                || checkExtremeEnchantment(itemStack)
-                || checkHideFlags(itemStack)
-                || checkAbnormalItemName(itemStack)
-                || checkAbnormalFoodEffects(itemStack)
-                || checkInvalidPotionType(itemStack)
-                || checkInvalidItemModel(itemStack)
-                || checkCustomMapID(itemStack)
-                || checkExtremePotionEffects(itemStack)
-                || checkCustomModelData(itemStack)
-                || checkCreativeOnlyItem(itemStack);
+        if (checkAbnormalNBT(itemStack)) return "异常NBT属性";
+        if (checkAbnormalEnchantment(itemStack)) return "异常附魔等级";
+        if (checkAbnormalAmount(itemStack)) return "异常堆叠数量";
+        if (checkUnbreakable(itemStack)) return "不可破坏标签";
+        if (checkIllegalEnchantments(itemStack)) return "互斥附魔共存";
+        if (checkExtremeEnchantment(itemStack)) return "极端附魔等级";
+        if (checkHideFlags(itemStack)) return "隐藏物品属性";
+        if (checkAbnormalItemName(itemStack)) return "异常名称描述";
+        if (checkAbnormalFoodEffects(itemStack)) return "异常食物效果";
+        if (checkInvalidPotionType(itemStack)) return "无效药水类型";
+        if (checkInvalidItemModel(itemStack)) return "无效物品模型";
+        if (checkCustomMapID(itemStack)) return "异常地图ID";
+        if (checkExtremePotionEffects(itemStack)) return "极端药水效果";
+        if (checkCustomModelData(itemStack)) return "异常模型数据";
+        if (checkCreativeOnlyItem(itemStack)) return "创造专属物品";
+        if ((reason = checkElytra(itemStack)) != null) return reason;
+        return null;
     }
 }
