@@ -15,8 +15,10 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.*;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -210,46 +212,98 @@ public class EventListener implements Listener {
     @EventHandler
     public void onInventoryCloseEvent(InventoryCloseEvent event) {
         if (LimiterMain.isEnabled) {
-            Player player = (event.getPlayer() instanceof Player) ? (Player) event.getPlayer() : null;
-            // 如果关闭的是玩家自己的背包（按E键），event.getInventory() 就是 player.getInventory()
-            // 此时只需扫描一次，避免重复判定
-            boolean isOwnInventory = event.getInventory().equals(event.getPlayer().getInventory());
-            // Player
-            ItemStack[] items = event.getPlayer().getInventory().getStorageContents();
-            if (items.length > 0) {
-                ArrayList<ItemStack> abnormalItems = new ArrayList<>();
-                for (ItemStack item : items) {
-                    if (shouldClean(player, item) != null) {
-                        if (!abnormalItems.contains(item)) {
-                            abnormalItems.add(item);
-                        }
-                    }
+            // 扫描结束的窗口中的异常物品
+            scanItemsInInventory(event.getInventory(), event.getPlayer());
+        }
+    }
+
+    /**
+     * 扫描指定容器中的物品，清除异常物品
+     */
+    private void scanItemsInInventory(Inventory inv, HumanEntity human) {
+        Player player = (human instanceof Player) ? (Player) human : null;
+        ItemStack[] items = inv.getStorageContents();
+        if (items.length == 0) return;
+        int count = 0;
+        for (int i = 0; i < items.length; i++) {
+            ItemStack item = items[i];
+            if (item != null && !item.getType().isAir()) {
+                String reason = shouldClean(player, item);
+                if (reason != null) {
+                    inv.setItem(i, AIR);
+                    count++;
+                    sendCleanNotification(player, item, reason);
                 }
-                if (abnormalItems.size() > 0) {
-                    for (ItemStack item : abnormalItems) {
-                        event.getPlayer().getInventory().remove(item);
+            }
+        }
+        if (count > 0 && player != null) {
+            player.sendMessage("§c[32kLimiter] 已从 " + getInvName(inv) + " 中清理 " + count + " 个异常物品");
+        }
+    }
+
+    private String getInvName(Inventory inv) {
+        if (inv.getType() == InventoryType.ENDER_CHEST) return "末影箱";
+        if (inv.getType() == InventoryType.CHEST) return "箱子";
+        if (inv.getType() == InventoryType.PLAYER) return "背包";
+        if (inv.getType() == InventoryType.SHULKER_BOX) return "潜影盒";
+        return inv.getType().name();
+    }
+
+    /**
+     * 玩家登录时扫描末影箱，清除异常物品（防止保存时序列化卡死）
+     */
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (LimiterMain.isEnabled && LimiterMain.detectEnderChestOnJoin) {
+            Player player = event.getPlayer();
+            Inventory enderChest = player.getEnderChest();
+            if (enderChest == null) return;
+            ItemStack[] items = enderChest.getStorageContents();
+            if (items.length == 0) return;
+            int count = 0;
+            for (int i = 0; i < items.length; i++) {
+                ItemStack item = items[i];
+                if (item != null && !item.getType().isAir()) {
+                    String reason = shouldClean(player, item);
+                    if (reason != null) {
+                        enderChest.setItem(i, AIR);
+                        count++;
+                        if (!player.hasMetadata("32kLimiter_cleared_enderchest")) {
+                            sendCleanNotification(player, item, reason);
+                        }
                     }
                 }
             }
-            // Inventory（如果不是玩家自己的背包，再扫描事件窗口）
-            if (!isOwnInventory) {
-                ItemStack[] inventoryContents = event.getInventory().getStorageContents();
-                if (inventoryContents.length > 0) {
-                    ArrayList<ItemStack> abnormalItems = new ArrayList<>();
-                    for (ItemStack item : inventoryContents) {
-                        if (shouldClean(player, item) != null) {
-                            if (!abnormalItems.contains(item)) {
-                                abnormalItems.add(item);
-                            }
-                        }
-                    }
-                    if (abnormalItems.size() > 0) {
-                        for (ItemStack item : abnormalItems) {
-                            event.getInventory().remove(item);
-                        }
-                    }
+            if (count > 0) {
+                player.sendMessage("§c[32kLimiter] 已从你的末影箱中清理 " + count + " 个异常物品");
+            }
+        }
+    }
+
+    /**
+     * 关闭容器时扫描末影箱（防止关闭末影箱后漏扫）
+     */
+    private void scanEnderChestOnClose(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player)) return;
+        Player player = (Player) event.getPlayer();
+        Inventory inv = event.getInventory();
+        if (inv.getType() != InventoryType.ENDER_CHEST) return;
+        ItemStack[] items = inv.getStorageContents();
+        if (items.length == 0) return;
+        int count = 0;
+        for (int i = 0; i < items.length; i++) {
+            ItemStack item = items[i];
+            if (item != null && !item.getType().isAir()) {
+                String reason = shouldClean(player, item);
+                if (reason != null) {
+                    inv.setItem(i, AIR);
+                    count++;
+                    sendCleanNotification(player, item, reason);
                 }
             }
+        }
+        if (count > 0) {
+            player.sendMessage("§c[32kLimiter] 已从你的末影箱中清理 " + count + " 个异常物品");
         }
     }
 

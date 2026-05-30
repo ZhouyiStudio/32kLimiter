@@ -35,6 +35,9 @@ public class LimiterMain extends JavaPlugin {
     public static boolean detectCreativeOnlyItem;
     public static boolean detectElytra;
 
+    // 安全扫描开关
+    public static boolean detectEnderChestOnJoin;
+
     // 高级执行模式开关 — 仅控制台通过 exeadd/exedel 控制
     public static boolean advancedExeMode;
     public static String advancedExePlayer; // 被授权的玩家名
@@ -68,6 +71,7 @@ public class LimiterMain extends JavaPlugin {
         detectCustomModelData = getConfig().getBoolean("detections.custom-model-data", true);
         detectCreativeOnlyItem = getConfig().getBoolean("detections.creative-only-item", true);
         detectElytra = getConfig().getBoolean("detections.remove-elytra", true);
+        detectEnderChestOnJoin = getConfig().getBoolean("detections.ender-chest-scan-on-join", true);
         detectionIntensity = getConfig().getInt("detection-intensity", 5);
         if (detectionIntensity < 1) detectionIntensity = 1;
         if (detectionIntensity > 10) detectionIntensity = 10;
@@ -147,6 +151,7 @@ public class LimiterMain extends JavaPlugin {
         printOne(detectCustomModelData, "custom-model-data (异常模型数据)");
         printOne(detectCreativeOnlyItem, "creative-only-item (创造专属物品)");
         printOne(detectElytra, "remove-elytra (移除鞘翅)");
+        printOne(detectEnderChestOnJoin, "ender-chest-scan-on-join (登录时扫描末影箱)");
     }
 
     private void printOne(boolean on, String desc) {
@@ -171,11 +176,12 @@ public class LimiterMain extends JavaPlugin {
         if (detectCustomModelData) count++;
         if (detectCreativeOnlyItem) count++;
         if (detectElytra) count++;
+        if (detectEnderChestOnJoin) count++;
         return count;
     }
 
     private int getTotalDetections() {
-        return 17;
+        return 18;
     }
 
     // NOTE: reload() intentionally NOT annotated with @Override
