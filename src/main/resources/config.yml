@@ -32,7 +32,7 @@ detections:
   # 检测异常物品名称（过长、过多颜色代码）
   abnormal-name-lore: true
 
-  # 检测食品物品的异常药水效果（超过 3 种效果或效果等级 > 5）
+  # 检测食品物品的异常药水效果（超过 3 种效果或效果等级 > V）
   abnormal-food-effects: true
 
   # 移除非OP玩家持有的刷怪蛋
@@ -47,7 +47,7 @@ detections:
   # 检测自定义地图 ID（地图 ID 异常过大或负数）
   custom-map-id: true
 
-  # 检测极端药水效果（持续时间 > 600000 tick 或效果等级 > 20）
+  # 检测极端药水效果（持续时间 > 600000 tick 或效果等级 > V）
   extreme-potion-effects: true
 
   # 检测异常 CustomModelData 值（超出 ±9999）

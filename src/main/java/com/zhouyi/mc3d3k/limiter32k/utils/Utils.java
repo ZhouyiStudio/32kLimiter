@@ -223,14 +223,13 @@ public class Utils {
             NBTCompoundList effects = nbtItem.getCompoundList("CustomPotionEffects");
             if (effects != null && effects.size() > 0) {
                 int effectCount = intensityThreshold(new int[]{20, 15, 10, 6, 4, 3, 2, 2, 1, 1});
-                int amplLevel = intensityThreshold(new int[]{50, 40, 30, 20, 10, 5, 5, 3, 3, 1});
                 // 效果数量超过阈值
                 if (effects.size() > effectCount) {
                     return true;
                 }
-                // 效果等级超过阈值
+                // 药水效果等级超过5（Amplifier > 4）即视为异常
                 for (ReadWriteNBT effect : effects) {
-                    if (effect.getInteger("Amplifier") > amplLevel) {
+                    if (effect.getInteger("Amplifier") > 4) {
                         return true;
                     }
                 }
@@ -315,11 +314,11 @@ public class Utils {
             NBTCompoundList effects = nbtItem.getCompoundList("CustomPotionEffects");
             if (effects != null && effects.size() > 0) {
                 int durThreshold = intensityThreshold(new int[]{5000000, 3000000, 2000000, 1200000, 600000, 300000, 200000, 100000, 50000, 20000});
-                int ampThreshold = intensityThreshold(new int[]{200, 100, 50, 30, 20, 15, 10, 8, 5, 3});
+                // 药水效果等级超过5（Amplifier > 4）即视为异常
                 for (ReadWriteNBT effect : effects) {
                     int duration = effect.getInteger("Duration");
                     int amplifier = effect.getInteger("Amplifier");
-                    if (duration > durThreshold || amplifier > ampThreshold) {
+                    if (duration > durThreshold || amplifier > 4) {
                         return true;
                     }
                 }
