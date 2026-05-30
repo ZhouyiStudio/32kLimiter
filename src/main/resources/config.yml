@@ -52,3 +52,6 @@ detections:
 
   # 检测异常 CustomModelData 值（超出 ±9999）
   custom-model-data: true
+
+  # 检测创造模式专属物品（基岩、命令方块、屏障、结构方块等生存模式不可获取的物品）
+  creative-only-item: true

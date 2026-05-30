@@ -346,6 +346,42 @@ public class Utils {
         return false;
     }
 
+    /**
+     * 检测创造模式专属物品 - 生存模式不应该出现的物品（基岩、命令方块、屏障等）
+     */
+    public boolean checkCreativeOnlyItem(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return false;
+        Material type = item.getType();
+        switch (type) {
+            // 方块类创造专属
+            case BEDROCK:
+            case BARRIER:
+            case COMMAND_BLOCK:
+            case CHAIN_COMMAND_BLOCK:
+            case REPEATING_COMMAND_BLOCK:
+            case STRUCTURE_BLOCK:
+            case STRUCTURE_VOID:
+            case JIGSAW:
+            case LIGHT:
+            case REINFORCED_DEEPSLATE:
+            // 传送门框架类
+            case END_PORTAL_FRAME:
+            case END_GATEWAY:
+            case END_PORTAL:
+            case NETHER_PORTAL:
+            // 物品类创造专属
+            case DEBUG_STICK:
+            case KNOWLEDGE_BOOK:
+            case COMMAND_BLOCK_MINECART:
+            // 其他不可生存获取
+            case FARMLAND:
+            case SPAWNER:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     // ========== 刷怪蛋检测工具方法 ==========
 
     /**
@@ -398,6 +434,7 @@ public class Utils {
             if (index < detectionFlags.length && detectionFlags[index++] && checkCustomMapID(itemStack)) return true;
             if (index < detectionFlags.length && detectionFlags[index++] && checkExtremePotionEffects(itemStack)) return true;
             if (index < detectionFlags.length && detectionFlags[index++] && checkCustomModelData(itemStack)) return true;
+            if (index < detectionFlags.length && detectionFlags[index++] && checkCreativeOnlyItem(itemStack)) return true;
             return false;
         }
 
@@ -415,6 +452,7 @@ public class Utils {
                 || checkInvalidItemModel(itemStack)
                 || checkCustomMapID(itemStack)
                 || checkExtremePotionEffects(itemStack)
-                || checkCustomModelData(itemStack);
+                || checkCustomModelData(itemStack)
+                || checkCreativeOnlyItem(itemStack);
     }
 }

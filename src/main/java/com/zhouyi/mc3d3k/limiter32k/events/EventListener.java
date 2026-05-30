@@ -3,10 +3,15 @@ package com.zhouyi.mc3d3k.limiter32k.events;
 import com.zhouyi.mc3d3k.limiter32k.LimiterMain;
 import com.zhouyi.mc3d3k.limiter32k.utils.Utils;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.*;
@@ -54,7 +59,8 @@ public class EventListener implements Listener {
                 LimiterMain.detectInvalidItemModel,
                 LimiterMain.detectCustomMapID,
                 LimiterMain.detectExtremePotionEffects,
-                LimiterMain.detectCustomModelData
+                LimiterMain.detectCustomModelData,
+                LimiterMain.detectCreativeOnlyItem
         };
     }
 
@@ -241,5 +247,51 @@ public class EventListener implements Listener {
                 }
             }
         }
+    }
+
+    /**
+     * 阻止非创造模式玩家放置屏障/光源方块
+     */
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        if (!LimiterMain.isEnabled) return;
+        if (!LimiterMain.detectCreativeOnlyItem) return;
+        if (event.getPlayer().getGameMode() == GameMode.CREATIVE) return;
+
+        Material type = event.getBlock().getType();
+        if (type == Material.BARRIER || type == Material.LIGHT) {
+            event.setCancelled(true);
+            event.getPlayer().sendMessage(ChatColor.RED + "⚠ 你不能在生存模式下放置 " + ChatColor.WHITE + type.name());
+        }
+    }
+
+    /**
+     * 扫描玩家附近已放置的屏障/光源方块并清除
+     * 在玩家周围 radius 格范围内搜索
+     */
+    public static int scanPlayerSurroundings(Player player, int radius) {
+        if (!LimiterMain.isEnabled || !LimiterMain.detectCreativeOnlyItem) return 0;
+
+        World world = player.getWorld();
+        int px = player.getLocation().getBlockX();
+        int py = player.getLocation().getBlockY();
+        int pz = player.getLocation().getBlockZ();
+        int removed = 0;
+
+        for (int x = px - radius; x <= px + radius; x++) {
+            for (int z = pz - radius; z <= pz + radius; z++) {
+                // 只扫描附近高度范围（y=0..world max）
+                int maxY = world.getMaxHeight();
+                for (int y = Math.max(0, py - radius); y <= Math.min(maxY, py + radius); y++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    Material type = block.getType();
+                    if (type == Material.BARRIER || type == Material.LIGHT) {
+                        block.setType(Material.AIR);
+                        removed++;
+                    }
+                }
+            }
+        }
+        return removed;
     }
 }

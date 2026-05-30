@@ -94,6 +94,7 @@ public class LimiterCommand implements TabExecutor {
             sender.sendMessage("  " + statusMark(LimiterMain.detectCustomMapID) + " \u5f02\u5e38\u5730\u56feID         " + ChatColor.GRAY + "(custom-map-id)");
             sender.sendMessage("  " + statusMark(LimiterMain.detectExtremePotionEffects) + " \u6781\u7aef\u836f\u6c34\u6548\u679c     " + ChatColor.GRAY + "(extreme-potion-effects)");
             sender.sendMessage("  " + statusMark(LimiterMain.detectCustomModelData) + " \u5f02\u5e38\u6a21\u578b\u6570\u636e     " + ChatColor.GRAY + "(custom-model-data)");
+            sender.sendMessage("  " + statusMark(LimiterMain.detectCreativeOnlyItem) + " \u521b\u9020\u4e13\u5c5e\u7269\u54c1     " + ChatColor.GRAY + "(creative-only-item)");
 
             sender.sendMessage("");
             sender.sendMessage(ChatColor.YELLOW + bold("\u53ef\u7528\u547d\u4ee4:")); // 可用命令
@@ -142,6 +143,7 @@ public class LimiterCommand implements TabExecutor {
                 sender.sendMessage("  custom-map-id: " + green(LimiterMain.detectCustomMapID));
                 sender.sendMessage("  extreme-potion-effects: " + green(LimiterMain.detectExtremePotionEffects));
                 sender.sendMessage("  custom-model-data: " + green(LimiterMain.detectCustomModelData));
+                sender.sendMessage("  creative-only-item: " + green(LimiterMain.detectCreativeOnlyItem));
                 break;
             case "enable":
                 if (!isAuthorizedSender(sender)) { noAdvancedMode(sender); return true; }

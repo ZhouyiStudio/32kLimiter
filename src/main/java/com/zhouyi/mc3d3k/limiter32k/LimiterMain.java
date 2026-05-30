@@ -6,6 +6,7 @@ import com.zhouyi.mc3d3k.limiter32k.events.EventListener;
 import com.zhouyi.mc3d3k.limiter32k.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class LimiterMain extends JavaPlugin {
@@ -31,6 +32,7 @@ public class LimiterMain extends JavaPlugin {
     public static boolean detectCustomMapID;
     public static boolean detectExtremePotionEffects;
     public static boolean detectCustomModelData;
+    public static boolean detectCreativeOnlyItem;
 
     // 高级执行模式开关 — 仅控制台通过 exeadd/exedel 控制
     public static boolean advancedExeMode;
@@ -63,6 +65,7 @@ public class LimiterMain extends JavaPlugin {
         detectCustomMapID = getConfig().getBoolean("detections.custom-map-id", true);
         detectExtremePotionEffects = getConfig().getBoolean("detections.extreme-potion-effects", true);
         detectCustomModelData = getConfig().getBoolean("detections.custom-model-data", true);
+        detectCreativeOnlyItem = getConfig().getBoolean("detections.creative-only-item", true);
         detectionIntensity = getConfig().getInt("detection-intensity", 5);
         if (detectionIntensity < 1) detectionIntensity = 1;
         if (detectionIntensity > 10) detectionIntensity = 10;
@@ -88,6 +91,19 @@ public class LimiterMain extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new EventListener(), this);
         getLogger().info(ChatColor.GREEN + "[3/7] 注册事件监听器... 完成");
+
+        // 启动定时任务：每 30 秒（600 tick）扫描在线玩家附近的屏障/光源方块并清除
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            if (!isEnabled || !detectCreativeOnlyItem) return;
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                int scanRadius = 8; // 每玩家半径 8 格
+                int removed = EventListener.scanPlayerSurroundings(player, scanRadius);
+                if (removed > 0) {
+                    player.sendMessage(ChatColor.RED + "⚠ 已清除你附近的 " + removed + " 个屏障/光源方块");
+                }
+            }
+        }, 200L, 600L); // 启动延迟 10s（200tick），每 30s（600tick）执行一次
+        getLogger().info(ChatColor.GREEN + "[3.5/7] 启动屏障/光源方块扫描任务... 完成");
 
         if (Bukkit.getPluginCommand("limiter") != null) {
             Bukkit.getPluginCommand("limiter").setExecutor(new LimiterCommand());
@@ -127,6 +143,7 @@ public class LimiterMain extends JavaPlugin {
         printOne(detectCustomMapID, "custom-map-id (异常地图ID)");
         printOne(detectExtremePotionEffects, "extreme-potion-effects (极端药水效果)");
         printOne(detectCustomModelData, "custom-model-data (异常模型数据)");
+        printOne(detectCreativeOnlyItem, "creative-only-item (创造专属物品)");
     }
 
     private void printOne(boolean on, String desc) {
@@ -149,11 +166,12 @@ public class LimiterMain extends JavaPlugin {
         if (detectInvalidItemModel) count++;
         if (detectCustomMapID) count++;
         if (detectCustomModelData) count++;
+        if (detectCreativeOnlyItem) count++;
         return count;
     }
 
     private int getTotalDetections() {
-        return 15;
+        return 16;
     }
 
     // NOTE: reload() intentionally NOT annotated with @Override
