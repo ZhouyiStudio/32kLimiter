@@ -33,7 +33,9 @@ public class LimiterMain extends JavaPlugin {
     public static boolean detectExtremePotionEffects;
     public static boolean detectCustomModelData;
     public static boolean detectCreativeOnlyItem;
-    public static boolean detectElytra;
+
+    // 玩家活跃药水效果等级限制（新）
+    public static boolean detectPlayerActiveEffectLevel;
 
     // 安全扫描开关
     public static boolean detectEnderChestOnJoin;
@@ -70,7 +72,7 @@ public class LimiterMain extends JavaPlugin {
         detectExtremePotionEffects = getConfig().getBoolean("detections.extreme-potion-effects", true);
         detectCustomModelData = getConfig().getBoolean("detections.custom-model-data", true);
         detectCreativeOnlyItem = getConfig().getBoolean("detections.creative-only-item", true);
-        detectElytra = getConfig().getBoolean("detections.remove-elytra", true);
+        detectPlayerActiveEffectLevel = getConfig().getBoolean("detections.player-active-effect-level", true);
         detectEnderChestOnJoin = getConfig().getBoolean("detections.ender-chest-scan-on-join", true);
         detectionIntensity = getConfig().getInt("detection-intensity", 5);
         if (detectionIntensity < 1) detectionIntensity = 1;
@@ -111,6 +113,15 @@ public class LimiterMain extends JavaPlugin {
         }, 200L, 600L); // 启动延迟 10s（200tick），每 30s（600tick）执行一次
         getLogger().info(ChatColor.GREEN + "[3.5/7] 启动屏障/光源方块扫描任务... 完成");
 
+        // 启动定时任务：每 2 秒（40 tick）检查所有在线玩家的活跃药水效果等级
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            if (!isEnabled || !detectPlayerActiveEffectLevel) return;
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                EventListener.checkPlayerActiveEffects(player);
+            }
+        }, 20L, 40L);
+        getLogger().info(ChatColor.GREEN + "[3.6/7] 启动活跃药水效果等级检测任务... 完成");
+
         if (Bukkit.getPluginCommand("limiter") != null) {
             Bukkit.getPluginCommand("limiter").setExecutor(new LimiterCommand());
             Bukkit.getPluginCommand("limiter").setTabCompleter(new LimiterCommand());
@@ -150,7 +161,7 @@ public class LimiterMain extends JavaPlugin {
         printOne(detectExtremePotionEffects, "extreme-potion-effects (极端药水效果)");
         printOne(detectCustomModelData, "custom-model-data (异常模型数据)");
         printOne(detectCreativeOnlyItem, "creative-only-item (创造专属物品)");
-        printOne(detectElytra, "remove-elytra (移除鞘翅)");
+        printOne(detectPlayerActiveEffectLevel, "player-active-effect-level (玩家活跃药水效果等级限制)");
         printOne(detectEnderChestOnJoin, "ender-chest-scan-on-join (登录时扫描末影箱)");
     }
 
@@ -175,7 +186,7 @@ public class LimiterMain extends JavaPlugin {
         if (detectCustomMapID) count++;
         if (detectCustomModelData) count++;
         if (detectCreativeOnlyItem) count++;
-        if (detectElytra) count++;
+        if (detectPlayerActiveEffectLevel) count++;
         if (detectEnderChestOnJoin) count++;
         return count;
     }

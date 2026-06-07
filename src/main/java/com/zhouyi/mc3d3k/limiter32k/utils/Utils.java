@@ -382,18 +382,6 @@ public class Utils {
         }
     }
 
-    /**
-     * 检测物品是否为鞘翅（ELYTRA）
-     * 鞘翅只能在创造模式下获取，生存模式不允许持有
-     */
-    public String checkElytra(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR) return null;
-        if (item.getType() == Material.ELYTRA) {
-            return "生存模式不允许持有鞘翅(ELYTRA)";
-        }
-        return null;
-    }
-
     // ========== 刷怪蛋检测工具方法 ==========
 
     /**
@@ -477,9 +465,6 @@ public class Utils {
             if (index < detectionFlags.length && detectionFlags[index++]) {
                 if (checkCreativeOnlyItem(itemStack)) return "创造专属物品";
             }
-            if (index < detectionFlags.length && detectionFlags[index++]) {
-                if ((reason = checkElytra(itemStack)) != null) return reason;
-            }
             return null;
         }
 
@@ -499,7 +484,6 @@ public class Utils {
         if (checkExtremePotionEffects(itemStack)) return "极端药水效果";
         if (checkCustomModelData(itemStack)) return "异常模型数据";
         if (checkCreativeOnlyItem(itemStack)) return "创造专属物品";
-        if ((reason = checkElytra(itemStack)) != null) return reason;
         return null;
     }
 }

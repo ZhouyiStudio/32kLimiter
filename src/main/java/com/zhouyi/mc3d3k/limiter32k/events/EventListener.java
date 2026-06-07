@@ -21,8 +21,11 @@ import org.bukkit.entity.HumanEntity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffect;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 public class EventListener implements Listener {
     private final Utils utils = new Utils();
@@ -62,8 +65,7 @@ public class EventListener implements Listener {
                 LimiterMain.detectCustomMapID,
                 LimiterMain.detectExtremePotionEffects,
                 LimiterMain.detectCustomModelData,
-                LimiterMain.detectCreativeOnlyItem,
-                LimiterMain.detectElytra
+                LimiterMain.detectCreativeOnlyItem
         };
     }
 
@@ -351,5 +353,32 @@ public class EventListener implements Listener {
             }
         }
         return removed;
+    }
+
+    /**
+     * 检查玩家的活跃药水效果，如果效果等级 > 4（即 amplifier >= 5），则移除该效果。
+     * 由定时任务每 2 秒调用一次。
+     */
+    public static void checkPlayerActiveEffects(Player player) {
+        if (player == null || !player.isOnline()) return;
+        Collection<PotionEffect> effects = player.getActivePotionEffects();
+        if (effects == null || effects.isEmpty()) return;
+
+        for (PotionEffect effect : effects) {
+            // amplifier 0 = 等级 I, 1 = 等级 II, ... 4 = 等级 V, 5 = 等级 VI
+            if (effect.getAmplifier() > 4) {
+                player.removePotionEffect(effect.getType());
+                player.sendMessage(ChatColor.RED + "⚠ 已移除超限药水效果: "
+                        + formatEffectName(effect.getType().getName())
+                        + " (等级 " + (effect.getAmplifier() + 1) + " > 5)");
+            }
+        }
+    }
+
+    private static String formatEffectName(String key) {
+        // 将 EFFECT_NAME 转换为更可读的形式
+        String lower = key.toLowerCase().replace('_', ' ');
+        if (lower.isEmpty()) return key;
+        return lower.substring(0, 1).toUpperCase() + lower.substring(1);
     }
 }
