@@ -1,9 +1,9 @@
 32kLimiter
 ---
-![Version](https://img.shields.io/github/v/release/GuangChen2333/32kLimiter)
-![Download](https://img.shields.io/github/downloads/GuangChen2333/32kLimiter/total)
-![License](https://img.shields.io/github/license/GuangChen2333/32kLimiter)
-![Stars](https://img.shields.io/github/stars/GuangChen2333/32kLimiter)
+![Version](https://img.shields.io/github/v/release/ZhouyiStudio/32kLimiter)
+![Download](https://img.shields.io/github/downloads/ZhouyiStudio/32kLimiter/total)
+![License](https://img.shields.io/github/license/ZhouyiStudio/32kLimiter/32kLimiter)
+![Stars](https://img.shields.io/github/stars/ZhouyiStudio/32kLimiter)
 
 [简体中文](https://github.com/ZhouyiStudio/32kLimiter/blob/master/README_cn.md) | **English**
 
